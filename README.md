@@ -44,11 +44,11 @@ Note that for the above 3 containers, the "name" field is optional. But currentl
 
 ## Building an Image
 
-The images from above can be viewed with either `docker images` or `atomic images`. You`ll notice that for running containers, the corresponding atomic image has a ">" next to it.
+The images from above can be viewed with either `docker images` or `atomic images`. You'll notice that for running containers, the corresponding atomic image has a ">" next to it.
 
 The above containers can be found at https://github.com/giuseppe/atomic-oci-containers. Here I would like to point out that the main difference between runc 1.0 and previous versions is how `runc run` and `runc start` works. Functionality that was in `start` is now in `run` (as of 1.0), and this is reflected in the `service.template` file's ExecStart.
 
-Once you are satisfied with the config files, you can (for example, with etcd)
+Once you are satisfied with the config files, you can locally build (for example, with etcd)
 
 `docker build -t etcd .`
 
