@@ -27,6 +27,7 @@ On fedora 23/Centos CI:
 
 Note that at the moment (July 14), runc 1.0 is not completely integrated into atomic yet. Versioning differences will be highlighted in this document.
 
+
 ## System Container Examples:
 
 ### Etcd container
@@ -43,6 +44,7 @@ You can check the status of the container with `atomic ps`, or `systemctl status
 
 To stop and remove the container, you can directly use `atomic uninstall etcd-system` (stop doesn't work atm). Don't do yet this if you want to test out flannel as well.
 
+
 ### Flannel container
 
 The etcd container (or an etcd service) must be running. If you are running the above Etcd container, you can set the network config as such: `runc exec etcd etcdctl set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'`
@@ -55,7 +57,8 @@ You can check the status of the container with `atomic ps`, or `systemctl status
 
 Similarily, `atomic uninstall flannel` cleans it up.
 
-### Helloworld
+
+### Helloworld Container
 
 All this does is when you `curl localhost:8081` (You can change that with --set), it will respond with a "Hi world". **For runc 1.0** You can build it directly with: `atomic install --system --name=helloworld jerzhang/spc-helloworld`
 
@@ -67,6 +70,7 @@ Again, `atomic uninstall helloworld` stops and removes the container.
 
 
 Note that for the above 3 containers, the "name" field is optional. But currently we don't actually have IDs associated with containers, so the ID is just the name, and the default names would look something like jerzhang-spc-helloworld-service. Giving a --name parameter helps quite a bit to keep track of containers.
+
 
 ## Building an Image
 
