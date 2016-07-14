@@ -1,23 +1,43 @@
 # atomic-system-containers-quickstart
 A quick start "guide" thrown together to test out system containers with atomic, mostly for personal reference
 
-For an overview on system containers, go to: http://scrivano.org/static/system-containers-demo
+## Overview
 
-On fedora 23:
-- Runc 1.0 release is required, and can be found [HERE](https://github.com/opencontainers/runc)
+As Giuseppe (gscrivan@redhat.com) nicely summarizes:
+
+> shortly, these are the most important operations done by atomic install --system --name=$NAME $IMAGE:
+> - a checkout of the image from the OSTree repository to /var/lib/containers/atomic/$NAME
+> - use /exports/{config.json, config.json.template} from the checked-out image rootfs to generate the OCI configuration.
+> - use /exports/service.template from the checked-out image rootfs to generate the OCI configuration.
+> - use systemctl to start the service
+
+> --system expects one of /exports/{config.json,config.json.template} for the OCI configuration, /exports/service.template and (used at the moment only to set default values in the template files) /exports/manifest.json
+
+> If any of these files is missing, then a default one is generated (for the runc configuration, runc spec is used, while the systemd default configuration file is hard coded in atomic)
+
+For more information, check out: http://scrivano.org/static/system-containers-demo
+
+## Requirements and Versioning
+
+On fedora 23/Centos CI:
+- Runc 1.0 release is **optional**, and can be found [HERE](https://github.com/opencontainers/runc). There are changes compared to previous versions which require different usage. (runc 0.0.9 and specification 0.4.0 is minimum requirement)
 - The requirements for atomic can be found [HERE](http://pkgs.fedoraproject.org/cgit/rpms/atomic.git/tree/atomic.spec)
 - Upstream atomic repo is [HERE](https://github.com/projectatomic/atomic)
 - An ostree repo must be set up to store images (should be in place by default)
 
-Note that at the moment (July 13), runc 1.0 is not completely integrated into atomic yet. But it should not cause an issue with the rest of this document.
+Note that at the moment (July 14), runc 1.0 is not completely integrated into atomic yet. Versioning differences will be highlighted in this document.
 
 ## System Container Examples:
 
 #### Etcd container
 
-Directly from the repo, one can: `atomic install --system --name=etcd-system jerzhang/spc-etcd`
+For **runc 1.0**, you can directly pull a pre-built image from the repo here: `atomic install --system --name=etcd-system jerzhang/spc-etcd`
 
-which will pull the pre-built etcd image from [docker hub](https://hub.docker.com/r/jerzhang/spc-etcd/). Note that the name "etcd-system" is required for the flannel container, as by default, flannel will attempt to use etcd-system.service (This should probably become an option in the future, such as `atomic install --system --set=etcd=etcd-system`).
+This will pull the pre-built etcd image from [docker hub](https://hub.docker.com/r/jerzhang/spc-etcd/) and install the system container.
+
+**For previous versions of runc**, one can `atomic install --system --name=etcd-system gscrivano/spc-etcd`
+
+Note that the name "etcd-system" is required for the flannel container, as by default, flannel will attempt to use etcd-system.service (This should probably become an option in the future, such as `atomic install --system --set=etcd=etcd-system`).
 
 You can check the status of the container with `atomic ps`, or `systemctl status etcd-system`
 
@@ -27,13 +47,19 @@ To stop and remove the container, you can directly use `atomic uninstall etcd-sy
 
 The etcd container (or an etcd service) must be running. If you are running the above Etcd container, you can set the network config as such: `runc exec etcd etcdctl set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'`
 
-Again from the repo, one can: `atomic install --system --name=flannel jerzhang/spc-flannel`. You can check the status of the container with `atomic ps`, or `systemctl status flannel`, or `ifconfig | grep flannel`.
+**For runc 1.0**, again from the repo, one can: `atomic install --system --name=flannel jerzhang/spc-flannel`. 
+
+**For previous versions** `atomic install --system --name=flannel giuseppe/spc-flannel`
+
+You can check the status of the container with `atomic ps`, or `systemctl status flannel`, or `ifconfig | grep flannel`.
 
 Similarily, `atomic uninstall flannel` cleans it up.
 
 #### Helloworld
 
-All this does is when you `curl localhost:8081` (You can change that with --set), it will respond with a "Hi world". You can build it directly with: `atomic install --system --name=helloworld jerzhang/spc-helloworld`
+All this does is when you `curl localhost:8081` (You can change that with --set), it will respond with a "Hi world". **For runc 1.0** You can build it directly with: `atomic install --system --name=helloworld jerzhang/spc-helloworld`
+
+**For previous versions, you can use** `atomic install --system --name=helloworld giuseppe/spc-helloworld`
 
 One can also play around with parameters, such as `--set=RECEIVER=Jerry`, and it will output "Hi Jerry" instead.
 
