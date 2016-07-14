@@ -86,7 +86,7 @@ Once you are satisfied with the config files, you can locally build (for example
 
 `atomic install --system --name=etcd-system etcd`
 
-Note that you could also set up a docker hub repo and push to that (name the image DOCKER_REPO_NAME/etcd for example). If you don't do either, skopeo will try to pull docker hub by default, and since it does not exist, the install will fail.
+Note that you could also set up a docker hub repo and push to that (name the image DOCKER_REPO_NAME/spc-etcd for example). If you don't have a local pull, skopeo will try to pull docker hub by default, and if there is no docker repo associated with the image you want, the install will fail.
 
 To remove a local atomic image, currently you must directly invoke ostree. You can see what images exist with `ostree refs`, and it will look something like `ociimage/jerzhang/spc-etcd-latest`. To remove said image, you can `ostree refs --delete ociimage/jerzhang/spc-etcd-latest`, and then `atomic images --prune`. (Currently, am working on making an atomic rmi command for this)
 
