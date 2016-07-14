@@ -29,7 +29,7 @@ Note that at the moment (July 14), runc 1.0 is not completely integrated into at
 
 ## System Container Examples:
 
-#### Etcd container
+### Etcd container
 
 For **runc 1.0**, you can directly pull a pre-built image from the repo here: `atomic install --system --name=etcd-system jerzhang/spc-etcd`
 
@@ -43,7 +43,7 @@ You can check the status of the container with `atomic ps`, or `systemctl status
 
 To stop and remove the container, you can directly use `atomic uninstall etcd-system` (stop doesn't work atm). Don't do yet this if you want to test out flannel as well.
 
-#### Flannel container
+### Flannel container
 
 The etcd container (or an etcd service) must be running. If you are running the above Etcd container, you can set the network config as such: `runc exec etcd etcdctl set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'`
 
@@ -55,7 +55,7 @@ You can check the status of the container with `atomic ps`, or `systemctl status
 
 Similarily, `atomic uninstall flannel` cleans it up.
 
-#### Helloworld
+### Helloworld
 
 All this does is when you `curl localhost:8081` (You can change that with --set), it will respond with a "Hi world". **For runc 1.0** You can build it directly with: `atomic install --system --name=helloworld jerzhang/spc-helloworld`
 
