@@ -54,7 +54,7 @@ You can directly pull a pre-built image from the repo here: `atomic install --sy
 
 This will pull the pre-built etcd image from [docker hub](https://hub.docker.com/r/gscrivano/etcd/) and install the system container.
 
-You can check the status of the container with `atomic ps`, or `systemctl status etcd`
+You can check the status of the container with `atomic ps`(as of v1.12 this has been refractored to `atomic containers list`), or `systemctl status etcd`
 
 To stop and remove the container, you can directly use `atomic uninstall etcd`. Don't do yet this if you want to test out flannel as well.
 
@@ -65,7 +65,7 @@ The etcd container (or an etcd service) must be running. If you are running the 
 
 Again from the repo, one can: `atomic install --system --name=flannel gscrivano/flannel`.
 
-You can check the status of the container with `atomic ps`, or `systemctl status flannel`, or `ifconfig | grep flannel`.
+You can check the status of the container with `atomic ps` (as of v1.12 this has been refractored to `atomic containers list`), or `systemctl status flannel`, or `ifconfig | grep flannel`.
 
 Similarily, `atomic uninstall flannel` cleans it up.
 
@@ -100,7 +100,7 @@ The new container is using the rootfs located in /var/lib/containers/atomic/hell
 
 Note that by default, all atomic system containers MUSt have a read-only rootfs.
 
-#### Checking other system container stats with "atomic ps"
+#### Checking other system container stats with "atomic ps" (as of v1.12 this has been refractored to `atomic containers list`)
 
 By default, atomic ps shows a truncated version of all running containers (including docker) on the system. If you just want to see system container images, you can `atomic ps -a --no-trunc -f runtime=runc` to filter for the system containers.
 
