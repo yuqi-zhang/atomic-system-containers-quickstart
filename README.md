@@ -54,6 +54,8 @@ You can directly pull a pre-built image from the repo here: `atomic install --sy
 
 This will pull the pre-built etcd image from [docker hub](https://hub.docker.com/r/gscrivano/etcd/) and install the system container.
 
+As of atomic 1.12 you have to start the service manually with `systemctl start etcd`.
+
 You can check the status of the container with `atomic ps`(as of v1.12 this has been refractored to `atomic containers list`), or `systemctl status etcd`
 
 To stop and remove the container, you can directly use `atomic uninstall etcd`. Don't do yet this if you want to test out flannel as well.
@@ -65,6 +67,8 @@ The etcd container (or an etcd service) must be running. If you are running the 
 
 Again from the repo, one can: `atomic install --system --name=flannel gscrivano/flannel`.
 
+As of atomic 1.12 you have to start the service manually with `systemctl start flannel`.
+
 You can check the status of the container with `atomic ps` (as of v1.12 this has been refractored to `atomic containers list`), or `systemctl status flannel`, or `ifconfig | grep flannel`.
 
 Similarily, `atomic uninstall flannel` cleans it up.
@@ -75,6 +79,8 @@ Note for flannel with specified $NAME for the container, /run/$NAME will be crea
 ### Helloworld Container
 
 This is a test container that, when you `curl localhost:$PORT` ($PORT defaults to 8081, You can change that with --set), it will respond with a "Hi world". You can build it directly with: `atomic install --system --name=hello-world --set=PORT=$PORT --set=RECEIVER=$NAME gscrivano/hello-world`
+
+As of atomic 1.12 you have to start the service manually with `systemctl start hello-world`.
 
 One can also play around with parameters, such as `--set=RECEIVER=Jerry`, and it will output "Hi Jerry" instead.
 
