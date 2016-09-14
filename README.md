@@ -17,6 +17,8 @@ As Giuseppe (gscrivan@redhat.com) nicely summarizes:
 
 For more information, check out: http://scrivano.org/static/system-containers-demo
 
+The official blog post is located here: http://www.projectatomic.io/blog/2016/09/intro-to-system-containers/
+
 ## Requirements and Versioning
 
 On fedora 24/Centos CI:
