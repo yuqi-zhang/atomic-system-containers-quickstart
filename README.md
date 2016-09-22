@@ -1,6 +1,8 @@
 # atomic-system-containers-quickstart
 A quick start "guide" thrown together to test out system containers with atomic, mostly for personal reference
 
+Updated as of Sept 22, 2016
+
 ## Overview
 
 As Giuseppe (gscrivan@redhat.com) nicely summarizes:
@@ -120,7 +122,7 @@ The above containers can be found at https://github.com/giuseppe/atomic-oci-cont
 
 `docker build -t etcd .`
 
-`atomic pull docker:etcd  ## the docker: prefix means to pull from the local Docker`
+`atomic pull --storage=ostree docker:etcd  ## the docker: prefix means to pull from the local Docker`
 
 `atomic install --system --name=etcd etcd`
 
@@ -151,3 +153,6 @@ Sometimes this happens, and you need to manually delete the container with runc 
 
 Most likely this is a skopeo error, where it is trying to pull from docker hub and failing. View above on building images.
 
+**When I pull an image, I get "unable to ping registry endpoint" "certificate signed by unknown authority"**
+
+Add that registry in /etc/sysconfig/docker to INSECURE_REGISTRY (INSECURE_REGISTRY='--insecure-registry REGISTRY_LINK')
