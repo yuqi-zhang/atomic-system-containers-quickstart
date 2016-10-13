@@ -28,7 +28,6 @@ On fedora 24/Centos CI:
 - Upstream atomic repo is [HERE](https://github.com/projectatomic/atomic)
 - An ostree repo must be set up to store images (if no repo is specified, a default one will be created during installation)
 
-Runc 1.0 and earlier versions are both supported in the current upstream atomic (Aug. 19). Versioning differences will be highlighted in this document.
 
 ### Building atomic from upstream repo (may be needed for various functionalities in newer versions)
 
@@ -73,9 +72,13 @@ Again from the repo, one can: `atomic install --system --name=flannel gscrivano/
 
 As of atomic 1.12 you have to start the service manually with `systemctl start flannel`.
 
-You can check the status of the container with `atomic ps` (as of v1.12 this has been refractored to `atomic containers list`), or `systemctl status flannel`, or `ifconfig | grep flannel`.
+You can check the status of the container with `atomic ps` (as of v1.12 this has been refractored to `atomic containers list`), or `systemctl status flannel`, or `ifconfig | grep flannel`. In case of failure refer to logs or troubleshooting below.
+
+If you had Docker running at this point, `systemctl status docker` will prompt you to `systemctl daemon-reload` to use the new flannel configurations from the container. Go ahead and do that and restart flannel.
 
 Similarily, `atomic uninstall flannel` cleans it up.
+
+Note that presently, if you restart your machine, the config file for flannel (inside Docker) will be re-created. Although the config has not changed, post-restart it will prompt you to `systemctl daemon-reload` again (since it thinks the config file was changed). That can be ignored (the issue is being investigated).
 
 Note for flannel with specified $NAME for the container, /run/$NAME will be created and bound to /run/$NAME in the container. The folder will include things such as the subnet.env file.
 
@@ -91,7 +94,9 @@ One can also play around with parameters, such as `--set=RECEIVER=Jerry`, and it
 Again, `atomic uninstall helloworld` stops and removes the container.
 
 
-Note that for the above 3 containers, the "name" field is optional. But currently we don't actually have IDs associated with containers, so the ID is just the name, and the default names would look something like gscrivano-flannel. Giving a --name parameter tells what service should be started with the container.
+Note 1: for the above 3 containers, the "name" field is optional. But currently we don't actually have IDs associated with containers, so the ID is just the name, and the default names would work as it stands, but you can specify etcd1, etcd2 if you want multiple containers.
+
+Note 2: atomic run/stop can be used to start and stop containers as well. For system containers they are basically wrappers for systemctl start/stop.
 
 
 ### Other commands with atomic (update, install --rootfs, ps)
