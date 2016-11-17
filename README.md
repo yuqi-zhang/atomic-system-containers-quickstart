@@ -95,7 +95,7 @@ One can also play around with parameters, such as `--set=RECEIVER=Jerry`, and it
 Again, `atomic uninstall helloworld` stops and removes the container.
 
 
-Note 1: for the above 3 containers, the "name" field is optional. But currently we don't actually have IDs associated with containers, so the ID is just the name, and the default names would work as it stands, but you can specify etcd1, etcd2 if you want multiple containers.
+Note 1: for the above 3 containers, one can add `--name` as a flag to specify what the container name will be. If you do not, there are default names that will be assigned (the image name). Currently we don't actually have IDs associated with containers, so the ID is just the name, and this will be used in further actions.
 
 Note 2: atomic run/stop can be used to start and stop containers as well. For system containers they are basically wrappers for systemctl start/stop.
 
