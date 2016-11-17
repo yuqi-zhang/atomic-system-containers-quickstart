@@ -1,7 +1,7 @@
 # atomic-system-containers-quickstart
 A quick start "guide" thrown together to test out system containers with atomic, mostly for personal reference
 
-Updated as of Sept 22, 2016
+Updated as of Nov. 17, 2016
 
 ## Overview
 
@@ -23,10 +23,11 @@ The official blog post is located here: http://www.projectatomic.io/blog/2016/09
 
 ## Requirements and Versioning
 
-On fedora 24/Centos CI:
-- Runc 1.0 release is **optional**, and can be found [HERE](https://github.com/opencontainers/runc). There are changes compared to previous versions which require different usage. (runc 0.0.9 and specification 0.4.0 is minimum requirement)
+Tested on fedora 24/Centos CI:
 - Upstream atomic repo is [HERE](https://github.com/projectatomic/atomic)
-- An ostree repo must be set up to store images (if no repo is specified, a default one will be created during installation)
+- The container images can be found here: https://github.com/projectatomic/atomic-system-containers
+- runc must be installed. runc 1.0 release is **optional**, and can be found [HERE](https://github.com/opencontainers/runc). There are changes compared to previous versions which require different usage. (runc 0.0.9 and specification 0.4.0 is minimum requirement)
+- ostree must be installed and an ostree repo must be set up to store images (if no repo is specified, a default one will be created during installation)
 
 
 ### Building atomic from upstream repo (may be needed for various functionalities in newer versions)
@@ -53,7 +54,7 @@ For a fresh fedora 24 image:
 
 ### Etcd container
 
-You can directly pull a pre-built image from the repo here: `atomic install --system --name=etcd gscrivano/etcd`
+You can directly pull a pre-built image from the repo here: `atomic install --system gscrivano/etcd`
 
 This will pull the pre-built etcd image from [docker hub](https://hub.docker.com/r/gscrivano/etcd/) and install the system container.
 
@@ -68,17 +69,17 @@ To stop and remove the container, you can directly use `atomic uninstall etcd`. 
 
 The etcd container (or an etcd service) must be running. If you are running the above Etcd container, you can set the network config as such: `runc exec etcd etcdctl set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'`
 
-Again from the repo, one can: `atomic install --system --name=flannel gscrivano/flannel`.
+Again from the repo, one can: `atomic install --system gscrivano/flannel`.
 
 As of atomic 1.12 you have to start the service manually with `systemctl start flannel`.
 
 You can check the status of the container with `atomic ps` (as of v1.12 this has been refractored to `atomic containers list`), or `systemctl status flannel`, or `ifconfig | grep flannel`. In case of failure refer to logs or troubleshooting below.
 
-If you had Docker running at this point, `systemctl status docker` will prompt you to `systemctl daemon-reload` to use the new flannel configurations from the container. Go ahead and do that and restart flannel.
+If you had Docker running at this point, the install will invoke `systemctl daemon-reload` to use the new flannel configurations from the container. Docker will be stopped and can be restarted with `systemctl start docker` to use the new configuration file.
 
 Similarily, `atomic uninstall flannel` cleans it up.
 
-Note that presently, if you restart your machine, the config file for flannel (inside Docker) will be re-created. Although the config has not changed, post-restart it will prompt you to `systemctl daemon-reload` again (since it thinks the config file was changed). That can be ignored (the issue is being investigated).
+Note that presently, if you restart your machine, the config file for flannel (inside Docker) will be re-created. Although the config has not changed, post-restart it will prompt you to `systemctl daemon-reload` again (since it thinks the config file was changed). That can be ignored.
 
 Note for flannel with specified $NAME for the container, /run/$NAME will be created and bound to /run/$NAME in the container. The folder will include things such as the subnet.env file.
 
@@ -106,6 +107,11 @@ Note 2: atomic run/stop can be used to start and stop containers as well. For sy
 By default, the conatiners are checked out at /var/lib/containers/atomic/. The first time you create a container, a $CONTAINER.0 is created, and a $CONTAINER symlink will point to that location. One can update a container with `atomic update`, which will detect newer images for the container, check them out into $CONTAINER.1, point the $CONTAINER symlink to the new location, and restart the service. Note that only 2 versions are saved, so the next time you update, $CONTAINER.0 is overwritten and used as the new location.
 
 An exmaple usage of update: `atomic update --set=RECEIVER=foo --container hello-world` will cause `curl localhost:8081` to respond with `Hi foo`.
+
+
+###### rollback
+
+Update has a subflag --rollback to the previous version. The systemd service file and any tmpfiles from the older deployment are re-installed. Example usage would be `atomic update --rollback --container hello-world`, which will cause the RECEVIER environment variable to return to what it was before the update. Note that since only 2 deployments of a system container are saved, if you invoke the above command again, it will change to the new deployment (much like ostree rollbacks) and once again RECEIVER will be "foo".
 
 #### A container with a remote rootfs
 
