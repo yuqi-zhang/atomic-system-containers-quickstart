@@ -1,13 +1,15 @@
 # atomic-system-containers-quickstart
-A quick start "guide" thrown together to test out system containers with atomic, mostly for personal reference
+A quick start "guide" thrown together to test out system containers with atomic CLI
 
-Updated as of Nov. 17, 2016
+Updated as of Dec. 13, 2016
 
 ## Overview
 
-As Giuseppe (gscrivan@redhat.com) nicely summarizes:
+System Containers were conceived to containerize services Docker needs to run (etcd, flannel) and even Docker itself. Essentially they are read-only, OS-specific runc containers managed by the atomic CLI and systemd, with OSTree as backend storage and uses skopeo to pull from registries. It is available for atomic CLI version 1.12 and later, but this guide will focus on the upstream version.
 
-> shortly, these are the most important operations done by atomic install --system --name=$NAME $IMAGE:
+There are many features you can make use that will be highlighted in this guide, but basically, in one line, system containers can be run with: `atomic install --system $image`, which will, as Giuseppe (gscrivan@redhat.com) nicely summarizes:
+
+> shortly, these are the most important operations done by atomic install --system $IMAGE:
 > - a checkout of the image from the OSTree repository to /var/lib/containers/atomic/$NAME
 > - use /exports/{config.json, config.json.template} from the checked-out image rootfs to generate the OCI configuration.
 > - use /exports/service.template from the checked-out image rootfs to generate the OCI configuration.
@@ -17,16 +19,17 @@ As Giuseppe (gscrivan@redhat.com) nicely summarizes:
 
 > If any of these files is missing, then a default one is generated (for the runc configuration, runc spec is used, while the systemd default configuration file is hard coded in atomic)
 
-For more information, check out: http://scrivano.org/static/system-containers-demo
+For more info, the official blog post is located here: http://www.projectatomic.io/blog/2016/09/intro-to-system-containers/
 
-The official blog post is located here: http://www.projectatomic.io/blog/2016/09/intro-to-system-containers/
+The very first version of a system container can be found here: http://scrivano.org/static/system-containers-demo
 
 ## Requirements and Versioning
 
-Tested on fedora 24/Centos CI:
+Currently, system containers is supported by atomic CLI 1.12 or later, and is tested on feodra/centos/rhel (and atomic variants)
+
 - Upstream atomic repo is [HERE](https://github.com/projectatomic/atomic)
 - The container images can be found here: https://github.com/projectatomic/atomic-system-containers
-- runc must be installed. runc 1.0 release is **optional**, and can be found [HERE](https://github.com/opencontainers/runc). There are changes compared to previous versions which require different usage. (runc 0.0.9 and specification 0.4.0 is minimum requirement)
+- runc must be installed. runc 0.0.9 and specification 0.4.0 is minimum requirement
 - ostree must be installed and an ostree repo must be set up to store images (if no repo is specified, a default one will be created during installation)
 
 
@@ -34,7 +37,7 @@ Tested on fedora 24/Centos CI:
 
 - The requirements for atomic can be found [HERE](http://pkgs.fedoraproject.org/cgit/rpms/atomic.git/tree/atomic.spec)
 
-For a fresh fedora 24 image:
+Manually, I tend to do the following:
 
 `$ sudo dnf install -y make git python libffi-devel python-devel libselinux-python ostree-devel python-gobject-base pylint golang-github-cpuguy83-go-md2man redhat-rpm-config gcc PyYAML python-dbus python-docker-py rpm-python docker skopeo python-slip-dbus gcc-go python3-pylint python3-dbus python3-slip-dbus python3-docker-py python3-gobject-base python3-dateutil python2-dateutil python2-coverage`
 
@@ -52,15 +55,25 @@ For a fresh fedora 24 image:
 
 ## System Container Examples:
 
+### Hello-world Container
+
+This is a test container that uses ncat to greet you when you `curl localhost:$PORT` ($PORT defaults to 8081, You can change that with --set), it will respond with a "Hi world". You can install it directly with: `atomic install --system --set=PORT=$PORT --set=RECEIVER=$NAME gscrivano/hello-world`, where the --set flags and values are optional.
+
+You can now start the systemd service with `systemctl start hello-world`. You can see the container of the status with `atomic containers list` and `systemctl status hello-world`. If the container is running fine, `curl localhost:$PORT` should respond with a "Hi world".
+
+One can also play around with parameters, such as `--set=RECEIVER=Jerry`, and it will output "Hi Jerry" instead.
+
+`atomic uninstall hello-world` stops and removes the container.
+
 ### Etcd container
 
-You can directly pull a pre-built image from the repo here: `atomic install --system gscrivano/etcd`
+You can directly install a pre-built image from the repo here: `atomic install --system gscrivano/etcd`
 
 This will pull the pre-built etcd image from [docker hub](https://hub.docker.com/r/gscrivano/etcd/) and install the system container.
 
-As of atomic 1.12 you have to start the service manually with `systemctl start etcd`.
+The container is now installed but not running. If you use `atomic containers list -a` you will see that it is created but inactive. You can start the service with `systemctl start etcd`. or `atomic run etcd` (which for a system container just re-routes the command to systemctl start)
 
-You can check the status of the container with `atomic ps`(as of v1.12 this has been refractored to `atomic containers list`), or `systemctl status etcd`
+You can check the status of the container with `atomic containers list`, or `systemctl status etcd`
 
 To stop and remove the container, you can directly use `atomic uninstall etcd`. Don't do yet this if you want to test out flannel as well.
 
@@ -73,7 +86,7 @@ Again from the repo, one can: `atomic install --system gscrivano/flannel`.
 
 As of atomic 1.12 you have to start the service manually with `systemctl start flannel`.
 
-You can check the status of the container with `atomic ps` (as of v1.12 this has been refractored to `atomic containers list`), or `systemctl status flannel`, or `ifconfig | grep flannel`. In case of failure refer to logs or troubleshooting below.
+You can check the status of the container with `atomic containers list`, or `systemctl status flannel`, or `ifconfig | grep flannel`. In case of failure refer to logs or troubleshooting below.
 
 If you had Docker running at this point, the install will invoke `systemctl daemon-reload` to use the new flannel configurations from the container. Docker will be stopped and can be restarted with `systemctl start docker` to use the new configuration file.
 
@@ -84,46 +97,36 @@ Note that presently, if you restart your machine, the config file for flannel (i
 Note for flannel with specified $NAME for the container, /run/$NAME will be created and bound to /run/$NAME in the container. The folder will include things such as the subnet.env file.
 
 
-### Helloworld Container
-
-This is a test container that, when you `curl localhost:$PORT` ($PORT defaults to 8081, You can change that with --set), it will respond with a "Hi world". You can build it directly with: `atomic install --system --name=hello-world --set=PORT=$PORT --set=RECEIVER=$NAME gscrivano/hello-world`
-
-As of atomic 1.12 you have to start the service manually with `systemctl start hello-world`.
-
-One can also play around with parameters, such as `--set=RECEIVER=Jerry`, and it will output "Hi Jerry" instead.
-
-Again, `atomic uninstall helloworld` stops and removes the container.
-
 
 Note 1: for the above 3 containers, one can add `--name` as a flag to specify what the container name will be. If you do not, there are default names that will be assigned (the image name). Currently we don't actually have IDs associated with containers, so the ID is just the name, and this will be used in further actions.
 
 Note 2: atomic run/stop can be used to start and stop containers as well. For system containers they are basically wrappers for systemctl start/stop.
 
 
-### Other commands with atomic (update, install --rootfs, ps)
+### Other commands with atomic (update, rollback, --rootfs, list)
 
 #### Update
 
-By default, the conatiners are checked out at /var/lib/containers/atomic/. The first time you create a container, a $CONTAINER.0 is created, and a $CONTAINER symlink will point to that location. One can update a container with `atomic update`, which will detect newer images for the container, check them out into $CONTAINER.1, point the $CONTAINER symlink to the new location, and restart the service. Note that only 2 versions are saved, so the next time you update, $CONTAINER.0 is overwritten and used as the new location.
+By default, the conatiners are checked out at /var/lib/containers/atomic/. The first time you create a container, a $CONTAINER.0 is created, and a $CONTAINER symlink will point to that location. One can update a container with `atomic containers update $CONTAINER`, which will detect newer images for the container, check them out into $CONTAINER.1, point the $CONTAINER symlink to the new location, and restart the service. Note that only 2 versions are saved, so the next time you update, $CONTAINER.0 is overwritten and used as the new location.
 
-An exmaple usage of update: `atomic update --set=RECEIVER=foo --container hello-world` will cause `curl localhost:8081` to respond with `Hi foo`.
+An exmaple usage of update: `atomic containers update --set=RECEIVER=foo --container hello-world` will cause `curl localhost:8081` to respond with `Hi foo`. Updating also applies any changes to the image the container is using stored in ostree. If packages/scripts/etc. have changed in the image, it will be there after updating.
 
 
-###### rollback
+#### rollback
 
-Update has a subflag --rollback to the previous version. The systemd service file and any tmpfiles from the older deployment are re-installed. Example usage would be `atomic update --rollback --container hello-world`, which will cause the RECEVIER environment variable to return to what it was before the update. Note that since only 2 deployments of a system container are saved, if you invoke the above command again, it will change to the new deployment (much like ostree rollbacks) and once again RECEIVER will be "foo".
+You can roll back a system container to the previous deployment. The systemd service file and any tmpfiles from the older deployment are re-installed. Example usage would be `atomic containers rollback hello-world`, which will cause the RECEVIER environment variable to return to what it was before the update. Note that since only 2 deployments of a system container are saved, if you invoke the above command again, it will change to the new deployment (much like atomic host rollbacks) and once again RECEIVER will be "foo".
 
 #### A container with a remote rootfs
 
-Let's say you had the above helloworld running, and you want to duplicate that container 5 times. Instead of checking out 5 images into exploded containers, you could use --rootfs to specify an existing roofts file as a read-only rootfs to run the service. For example, you can `atomic install --system --name=hello-world-remote --rootfs=/var/lib/containers/atomic/hello-world --set=RECEIVER=remote-user --set=PORT=8083 gscrivano/hello-world`, and the container will run as normal, i.e. curl'ing port 8083 will return you "Hi remote-user". But if you take a look at /var/lib/containers/atomic/hello-world-remote, you'll notice there isn't a rootfs folder, just config and info.
+Let's say you had the above helloworld running, and you want to duplicate that container 5 times. Instead of checking out 5 images into exploded containers, you could use --rootfs to specify an existing rootfs folder as a read-only rootfs to run the service. For example, you can `atomic install --system --name=hello-world-remote --rootfs=/var/lib/containers/atomic/hello-world --set=RECEIVER=remote-user --set=PORT=8083 gscrivano/hello-world`, and the container will run as normal, i.e. curl'ing port 8083 will return you "Hi remote-user". But if you take a look at /var/lib/containers/atomic/hello-world-remote, you'll notice there isn't a rootfs folder, just config and info.
 
 The new container is using the rootfs located in /var/lib/containers/atomic/hello-world, and if that gets updated, the remotes will automatically get updated as well. Conversely, no updates to images can be directly applied to the remote containers. This reduces necessary space to run multiple conatiners, if they can use the same image.
 
 Note that by default, all atomic system containers MUSt have a read-only rootfs.
 
-#### Checking other system container stats with "atomic ps" (as of v1.12 this has been refractored to `atomic containers list`)
+#### Checking other system container stats with list
 
-By default, atomic ps shows a truncated version of all running containers (including docker) on the system. If you just want to see system container images, you can `atomic ps -a --no-trunc -f runtime=runc` to filter for the system containers.
+By default, atomic containers list shows a truncated version of all running containers (including docker) on the system. If you just want to see system container images, you can `atomic containers list -a --no-trunc -f runtime=ostree` to filter for the system containers.
 
 ## Building an Image
 
