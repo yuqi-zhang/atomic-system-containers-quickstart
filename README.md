@@ -128,17 +128,45 @@ Note that by default, all atomic system containers MUSt have a read-only rootfs.
 
 By default, atomic containers list shows a truncated version of all running containers (including docker) on the system. If you just want to see system container images, you can `atomic containers list -a --no-trunc -f runtime=ostree` to filter for the system containers.
 
-## Building an Image
+## System Container Images
 
-The images from above can be viewed with `atomic images list`. You'll notice that for images in use by running containers, the corresponding atomic image has a ">" next to it.
+### pulling
 
-The above containers can be found at https://github.com/giuseppe/atomic-oci-containers. Once you are satisfied with the config files, you can locally build (for example, with etcd)
+System containers use images stored in ostree. If an image doesn't exist during install locally, the atomic CLI will attempt to pull said image from a registry (default docker hub). Most of the time it is better to have the image pulled to ostree before installation, and that can be done as follows:
+
+`atomic pull --storage ostree $IMAGE` will pull the image directly to ostree. $IMAGE would be something like registry/repo/image or just repo/image if it is from the docker hub.
+
+`atomic pull --storage ostree docker:$IMAGE` will pull the image from local docker instead.
+
+`atomic pull --storage ostree dockertar:$IMAGE` will pull the image from a dockertar.
+
+### list and info
+
+The images from above can be viewed with `atomic images list`. You'll notice that for images in use by running containers, the corresponding atomic image has a ">" next to it. To filter for just ostree images, you can filter with `atomic images list -f type=ostree`
+
+`atomic version --storage ostree $IMAGE` will give you some versioning info.
+
+`atomic info --storage ostree $IMAGE` will show you the labels of the image, but more importantly will display environment variables for that container image. Environment variables can be: runc process environment, systemd service working/runtime directories, runscript variables, etc. Most of these will have a default value as specified by a manifest.json included with the file, or will be set by the OS during installation. Variables with no default value and not set by OS will be displayed as a separate category, and if not specified, will cause installation to fail. These variables can be set with `--set` flag during installation.
+
+### building your own image
+
+The above containers can be found at https://github.com/projectatomic/atomic-system-containers.
+
+Basically, an image will consist of some combination of the following:
+ - `config.json.template`: mandatory runc config file, used to run the container
+ - `service.template`: mandatory systemd service file, to define how the service will be run
+ - `manifest.json`: optional(?) define default values for environment variables
+ - `tmpfiles.template`: optional, used to remove tmpfiles created on the host by the container
+ - `init.sh`: optional(?) define the starting point of the container (setup, run)
+ - `Dockerfile`: mandatory, define packages, and include the above files to /exports in the rootfs
+
+Once you are satisfied with the config files, you can locally build (for example, with etcd)
 
 `docker build -t etcd .`
 
-`atomic pull --storage=ostree docker:etcd  ## the docker: prefix means to pull from the local Docker`
+`atomic pull --storage=ostree docker:etcd`
 
-`atomic install --system --name=etcd etcd`
+`atomic install --system etcd`
 
 Note that you could also set up a docker hub repo and push to that (name the image DOCKER_REPO_NAME/etcd for example). If you don't have a local pull, skopeo will try to pull docker hub by default, and if there is no docker repo associated with the image you want, the install will fail.
 
