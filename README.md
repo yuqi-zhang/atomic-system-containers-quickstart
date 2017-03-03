@@ -1,7 +1,7 @@
 # atomic-system-containers-quickstart
 A quick start "guide" thrown together to test out system containers with atomic CLI
 
-Updated as of Dec. 13, 2016
+Updated as of Mar. 3, 2017
 
 ## Overview
 
@@ -71,6 +71,8 @@ You can directly install a pre-built image from the repo here: `atomic install -
 
 This will pull the pre-built etcd image from [docker hub](https://hub.docker.com/r/gscrivano/etcd/) and install the system container.
 
+Alternatively, this container image also lives within the fedora registry. You can pull from: registry.fedoraproject.org/f25/etcd
+
 The container is now installed but not running. If you use `atomic containers list -a` you will see that it is created but inactive. You can start the service with `systemctl start etcd`. or `atomic run etcd` (which for a system container just re-routes the command to systemctl start)
 
 You can check the status of the container with `atomic containers list`, or `systemctl status etcd`
@@ -83,6 +85,8 @@ To stop and remove the container, you can directly use `atomic uninstall etcd`. 
 The etcd container (or an etcd service) must be running. If you are running the above Etcd container, you can set the network config as such: `runc exec etcd etcdctl set /atomic.io/network/config '{"Network":"172.17.0.0/16"}'`
 
 Again from the repo, one can: `atomic install --system gscrivano/flannel`.
+
+Alternatively, this image lives within the fedora registry here: registry.fedoraproject.org/f25/flannel
 
 As of atomic 1.12 you have to start the service manually with `systemctl start flannel`.
 
