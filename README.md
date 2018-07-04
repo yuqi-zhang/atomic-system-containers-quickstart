@@ -39,9 +39,7 @@ Currently, system containers is supported by atomic CLI 1.12 or later, and is te
 
 Manually, I tend to do the following:
 
-`$ sudo dnf install -y make git python libffi-devel python-devel libselinux-python ostree-devel python-gobject-base pylint golang-github-cpuguy83-go-md2man redhat-rpm-config gcc PyYAML python-dbus python-docker-py rpm-python docker skopeo python-slip-dbus gcc-go python3-pylint python3-dbus python3-slip-dbus python3-docker-py python3-gobject-base python3-dateutil python2-dateutil python2-coverage`
-
-`$ pip install python-dateutil xattr`
+`$ sudo dnf install -y make git python libffi-devel python-devel libselinux-python ostree-devel python-gobject-base pylint golang-github-cpuguy83-go-md2man redhat-rpm-config gcc PyYAML python-dbus python-docker-py rpm-python docker skopeo python-slip-dbus gcc-go python2-pylint python3-dbus python3-slip-dbus python3-docker-py python3-gobject-base python3-dateutil python2-dateutil python2-coverage`
 
 `$ sudo systemctl start docker`
 
